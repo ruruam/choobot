@@ -113,4 +113,4 @@ async def help_listener(inter: disnake.MessageInteraction):
         await inter.response.send_message("Эх.. ну ладно..")
 
 
-bot.run("MTExNjIyOTEwODA3MDg5NTcwNw.G3A2i8.2PERi23lZYv8B3-l-DRODyLZJzDABG6zdu231I")
+bot.run("BOT_TOKEN")
