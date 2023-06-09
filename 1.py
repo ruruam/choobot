@@ -1,0 +1,116 @@
+
+import disnake
+from disnake.ext import commands
+
+bot = commands.Bot(command_prefix=".", help_command=None, intents=disnake.Intents.all(), test_guilds=[1113906788237058082])
+
+CENSORED_WORDS = ["hack", "fook"]
+JOIN_WORDS = ["Join", "join"]
+PON_WORDS = ["pon"]
+
+
+@bot.event
+async def on_ready():
+	print(f"Bot {bot.user} is ready to work!")
+
+
+@bot.event
+async def on_member_join(member):
+	channel = bot.get_channel(1113908061346734232)
+
+	role = disnake.utils.get(member.guild.roles, id=1115006547714642000)
+
+	await member.add_roles( role )
+
+
+@bot.event
+async def on_message(message):
+	await bot.process_commands(message)
+
+	for content in message.content.split(" "):
+		for censored_word in CENSORED_WORDS:
+			if content.lower() == censored_word:
+				await message.delete()
+				await message.channel.send(f"{message.author.mention} можно покультурнее?")
+
+
+
+@bot.event
+async def on_command_error(ctx, error):
+	print (error)
+
+	if isinstance(error, commands.MissingPermissions):
+		await ctx.send(f"{ctx.author.mention}, у вас недостаточно прав для выполнения данной команды!")
+	elif isinstance(error, commands.UserInputError):
+		await ctx.send(embed=disnake.Embed(
+			description=f"Правильное использование команды: `{ctx.prefix}{ctx.command.name}` ({ctx.command.brief})\nE"
+		))
+
+
+@bot.command()
+@commands.has_permissions(kick_members=True, administrator=True)
+async def kick(ctx, member: disnake.Member, *, reason="Нарушение правил"):
+	await ctx.send(f"Админ {ctx.author.mention} исключил пользователя {member.mention}", delete_after=2)
+	await member.kick(reason=reason)
+	await ctx.message.delete()
+
+
+@bot.command()
+@commands.has_permissions(ban_members=True, administrator=True)
+async def ban(ctx, member: disnake.Member, *, reason="Нарушение правил"):
+		await ctx.send(f"Админ {ctx.author.mention} забанил пользователя {member.mention}", delete_after=2)
+		await member.ban(reason=reason)
+		await ctx.message.delete()
+
+
+@bot.command()
+@commands.has_permissions(administrator=True)
+async def mute(ctx, member: disnake.Member, *, reason="Нарушение правил"):
+		await ctx.send(f"Админ {ctx.author.mention} Замутил пользователя {member.mention}")
+		role = disnake.utils.get(member.guild.roles, id=1116249784232202260)
+		await ctx.message.delete()
+
+
+@bot.command( pass_context = True )
+
+async def clear( ctx, amount = 100 ):
+	await ctx.channel.purge( limit = amount )
+
+
+
+
+@bot.event
+async def on_message(message):
+	await bot.process_commands(message)
+
+	for content in message.content.split(" "):
+		for censored_word in PON_WORDS:
+			if content.lower() == censored_word:
+				await message.channel.send(f"Понцки")
+
+
+@bot.slash_command()
+async def choo(inter: disnake.ApplicationCommandInteraction):
+    await inter.response.send_message(
+        "Хочешь в команду?",
+        components=[
+            disnake.ui.Button(label="Да", style=disnake.ButtonStyle.success, custom_id="yes"),
+            disnake.ui.Button(label="Нет", style=disnake.ButtonStyle.danger, custom_id="no"),
+        ],
+    )
+
+
+@bot.listen("on_button_click")
+async def help_listener(inter: disnake.MessageInteraction):
+    if inter.component.custom_id not in ["yes", "no"]:
+        # We filter out any other button presses except
+        # the components we wish to process.
+        return
+
+    if inter.component.custom_id == "yes":
+        await inter.response.send_message("Заполняй заявку тут - https://forms.gle/S9WP6cXTSXkm2FoP9?")
+    elif inter.component.custom_id == "no":
+        await inter.response.send_message("Эх.. ну ладно..")
+
+
+bot.run("MTExNjIyOTEwODA3MDg5NTcwNw.G3A2i8.2PERi23lZYv8B3-l-DRODyLZJzDABG6zdu231I")
